@@ -1,0 +1,37 @@
+<!-- chat_app/templates/admin_login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link href="{{ url_for('static', filename='css/daisyui.min.css') }}" rel="stylesheet" type="text/css" />
+    <script src="{{ url_for('static', filename='js/tailwindcss.js') }}"></script>
+</head>
+<body>
+    <div class="hero min-h-screen bg-base-200">
+        <div class="hero-content flex-col lg:flex-row-reverse">
+            <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+                <div class="card-body">
+                    <h1 class="text-3xl font-bold mb-4 text-center">管理员登录</h1>
+                    {% if error %}
+                        <div class="alert alert-error mb-4">
+                            <span>{{ error }}</span>
+                        </div>
+                    {% endif %}
+                    <form method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">密码</span></label>
+                            <input type="password" name="password" placeholder="管理员密码" required class="input input-bordered" />
+                        </div>
+                        <div class="form-control mt-6">
+                            <button type="submit" class="btn btn-primary">验证</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

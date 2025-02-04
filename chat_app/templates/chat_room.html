@@ -1,0 +1,372 @@
+<!-- chat_app/templates/chat_room.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCR - 聊天室</title>
+    <link href="{{ url_for('static', filename='css/daisyui.min.css') }}" rel="stylesheet" type="text/css" />
+    <script src="{{ url_for('static', filename='js/tailwindcss.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/timeago.min.js') }}"></script>
+</head>
+<body>
+    <div class="container mx-auto p-4">
+        <div class="navbar bg-base-300 mb-4">
+            <div class="flex-1">
+                {% if is_admin %}
+                    <span class="text-xl">欢迎, 尊敬的管理员 {{ user.nickname or username }}</span>
+                {% else %}
+                    <span class="text-xl">欢迎, 尊敬的用户 {{ user.nickname or username }}</span>
+                {% endif %}
+                <span id="online-status" class="ml-2 inline-flex items-center border px-2 py-1 rounded">
+                    <span class="online-icon loading"></span>
+                </span>
+            </div>
+            <div class="flex-none gap-2">
+                <a href="{{ url_for('chat.user_panel') }}" class="btn btn-sm">用户面板</a>
+                {% if is_admin %}
+                    <a href="{{ url_for('admin.admin') }}" class="btn btn-sm">管理面板</a>
+                {% endif %}
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-sm">退出</a>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-1">
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="text-xl font-semibold mb-2">聊天室列表</h2>
+                        <ul class="space-y-2">
+                            {% for room in rooms %}
+                                <li><a href="{{ url_for('chat.chat', room_id=room.id) }}" class="btn btn-outline btn-block {% if room.id == current_room_id %}btn-active{% endif %}">{{ room.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                        <div class="mt-4">
+                            <h3 class="text-xl font-semibold mb-2">在线用户</h3>
+                            <ul id="online-users-list" class="space-y-1">
+                                {% for user in online_users %}
+                                    <li data-username="{{user}}">{{user}}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="md:col-span-3">
+                {% if current_room_id and is_user_in_room %}
+                    <div class="card bg-base-200 shadow-xl h-[calc(100vh-200px)]  overflow-y-auto" id="message-card">
+                        <div class="card-body">
+                            <button id="load-more-btn" class="btn btn-sm btn-outline mb-2">加载更多消息</button>
+                            <ul id="message-list" class="space-y-2">
+                                {% for msg in messages %}
+                                    <li class="flex items-start gap-2" data-message-id="{{msg.id}}">
+                                        <div class="flex flex-col">
+                                            <small class="text-xs text-gray-500 timeago" data-timestamp="{{ msg.timestamp }}" title="{{ msg.timestamp }}">{{ msg.timestamp }}</small>
+                                            <div class="flex items-center gap-2">
+                                                {% if msg.username.split('(')[-1].replace(')','') == session['username']  %}
+                                                    <span class="font-semibold text-blue-500">{{ msg.username }} ( {{ msg.nickname or msg.username }} ):</span>
+                                                {% elif  msg.is_admin == 1 %}
+                                                    <span class="font-semibold text-red-500">{{ msg.username }} ( {{ msg.nickname or msg.username }} ):</span>
+                                                {% else %}
+                                                    <span class="font-semibold">{{ msg.username }} ( {{ msg.nickname or msg.username }} ):</span>
+                                                {% endif %}
+                                                <span class="bg-gray-100 px-2 py-1 rounded-md break-all">{{ msg.message }}</span>
+                                            </div>
+                                        </div>
+                                        {% if is_admin %}
+                                            <form method="post" class="delete-form" action="{{ url_for('chat.chat_delete_message', room_id=current_room_id, page=page) }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                                <input type="hidden" name="message_id" value="{{ msg.id }}">
+                                                <button type="submit" class="btn btn-sm btn-error">删除</button>
+                                            </form>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <input type="text" id="message-input" placeholder="Type your message here..." class="input input-bordered w-full" />
+                        <button onclick="sendMessage()" class="btn btn-primary">发送</button>
+                    </div>
+                {% elif current_room_id %}
+                    <div class="alert alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3 1.732 3z" /></svg>
+                        <span>你不在当前聊天室中！</span>
+                    </div>
+                {% else %}
+                    <div class="card bg-base-200 shadow-xl h-[calc(100vh-200px)]  overflow-y-auto">
+                        <div class="card-body">
+                            请选择一个聊天室
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        var socket = io({query: {room_id: {{ current_room_id }}}});
+        var currentPage = {{ page }};
+        var messagesPerPage = {{ messages_per_page }};
+        var loadingMore = false;
+
+        function renderTimeago() {
+            const timeagoElements = document.querySelectorAll('.timeago');
+            timeagoElements.forEach(element => {
+                const timestamp = element.dataset.timestamp;
+                if (timestamp) {
+                    element.textContent = timeago.format(timestamp, 'zh_CN');
+                }
+            });
+        }
+
+        function updateOnlineStatus(isConnected) {
+            const onlineStatus = document.getElementById('online-status');
+            const onlineIcon = document.querySelector('#online-status .online-icon');
+            onlineIcon.classList.remove('loading');
+
+            if (isConnected) {
+                onlineStatus.innerHTML = '<span class="text-green-500 online-icon">✔</span> 在线'; // 使用绿色勾选符号
+                onlineIcon.classList.add('text-green-500');
+            } else {
+                onlineStatus.innerHTML = '<span class="text-red-500 online-icon">✖</span> 离线'; // 使用红色叉号符号
+                onlineIcon.classList.add('text-red-500');
+            }
+        }
+
+        socket.on('connect', function() {
+            console.log('SocketIO connected');
+            updateOnlineStatus(true);
+        });
+
+        socket.on('disconnect', function() {
+            console.log('SocketIO disconnected');
+            updateOnlineStatus(false); // 断开连接，更新状态
+        });
+
+        socket.on('receive_message', function(data) {
+            if (data.room_id == {{ current_room_id }}) {
+                var messageList = document.getElementById('message-list');
+                var messageCard = document.getElementById('message-card');
+
+                if (!messageList) {
+                    console.error('messageList element not found!');
+                    return;
+                }
+                if (!messageCard) {
+                    console.error('messageCard element not found!');
+                    return;
+                }
+                var listItem = document.createElement('li');
+                listItem.classList.add('flex', 'items-start','gap-2')
+
+                let usernameElement = '';
+                if(data.username === "{{session['username']}}" ){
+                    usernameElement = `<span class="font-semibold text-blue-500">${data.username} ( ${data.nickname ? data.nickname : data.username} ):</span>`
+                }else if (data.is_admin === 1) {
+                    usernameElement = `<span class="font-semibold text-red-500">${data.username} ( ${data.nickname ? data.nickname : data.username} ):</span>`
+                }else{
+                    usernameElement = `<span class="font-semibold">${data.username} ( ${data.nickname ? data.nickname : data.username} ):</span>`
+                }
+
+                listItem.innerHTML = ` <div class="flex flex-col">
+                    <small class="text-xs text-gray-500 timeago" data-timestamp="${ data.timestamp }" title="${ data.timestamp }">${ data.timestamp }</small>
+                                    <div class="flex items-center gap-2">
+                                        ${usernameElement}
+                                        <span class="bg-gray-100 px-2 py-1 rounded-md break-all">${data.message}</span>
+                                    </div>
+                                </div>`
+
+                if ({{ is_admin }}){
+                    listItem.innerHTML += `<form method="post" class="delete-form" action="{{ url_for('chat.chat_delete_message', room_id=current_room_id, page=currentPage) }}" >
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                        <input type="hidden" name="message_id" value="">
+                                        <button type="submit" class="btn btn-sm btn-error">删除</button>
+                                    </form>`
+                }
+                messageList.appendChild(listItem);
+                scrollToBottom();
+                setupDeleteForm();
+                setTimeout(renderTimeago, 0);
+            }
+        });
+
+        socket.on('user_online', function(data) {
+            if(data.room_id == {{ current_room_id }}) {
+                updateUserList(data.username, true)
+            }
+        });
+
+        socket.on('user_offline', function(data) {
+            if(data.room_id == {{ current_room_id }}) {
+                 updateUserList(data.username, false)
+            }
+        });
+
+        function updateUserList(username, online) {
+            const userList = document.getElementById('online-users-list');
+            const existingUser = userList.querySelector(`li[data-username="${username}"]`);
+            if(online && !existingUser) {
+                const newUserItem = document.createElement('li')
+                newUserItem.dataset.username = username
+                newUserItem.textContent = username
+                userList.appendChild(newUserItem)
+            }
+            if (!online && existingUser) {
+                userList.removeChild(existingUser);
+            }
+        }
+
+        function sendMessage() {
+            var messageInput = document.getElementById('message-input');
+            var message = messageInput.value;
+            if (!message || !message.trim()) {
+                return;
+            }
+            socket.emit('send_message', {message: message, room_id: {{ current_room_id }}, timestamp: new Date().toISOString()});
+            messageInput.value = '';
+            messageInput.focus();
+        }
+
+        document.getElementById('message-input').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        socket.on('banned', function(data) {
+            alert(data.message);
+            window.location.href = "{{ url_for('auth.login') }}";
+        });
+
+        function setupDeleteForm() {
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(form => {
+                form.addEventListener('submit', function(event){
+                    event.preventDefault();
+                    const formData = new FormData(this);
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success'){
+                            const messageList = document.getElementById('message-list');
+                            messageList.innerHTML = "";
+                            data.messages.forEach(msg => {
+                                var listItem = document.createElement('li');
+                                listItem.classList.add('flex', 'items-start','gap-2')
+                                listItem.dataset.messageId = msg.id
+                                listItem.innerHTML = ` <div class="flex flex-col">
+                                                        <small class="text-xs text-gray-500 timeago" data-timestamp="${ msg.timestamp }" title="${ msg.timestamp }">${ msg.timestamp }</small>
+                                                            <div class="flex items-center gap-2">
+                                                                <span class="font-semibold">${msg.username}:</span>
+                                                                <span class="bg-gray-100 px-2 py-1 rounded-md break-all">${msg.message}</span>
+                                                            </div>
+                                                        </div>`
+                                if ({{ is_admin }}){
+                                    listItem.innerHTML += `<form method="post" class="delete-form" action="{{ url_for('chat.chat_delete_message', room_id=current_room_id, page=currentPage) }}" >
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                                                <input type="hidden" name="message_id" value="${msg.id}">
+                                                                <button type="submit" class="btn btn-sm btn-error">删除</button>
+                                                            </form>`
+                                }
+                                messageList.appendChild(listItem);
+                            });
+                            setupDeleteForm()
+                        }
+                    });
+                });
+            });
+        }
+        setupDeleteForm()
+        setTimeout(renderTimeago, 0);
+
+        function scrollToBottom() {
+            var messageCard = document.getElementById('message-card');
+            if (messageCard) {
+                setTimeout(function() {
+                    messageCard.scrollTop = messageCard.scrollHeight;
+                }, 0);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            scrollToBottom();
+            renderTimeago();
+        });
+
+        document.getElementById('load-more-btn').addEventListener('click', function() {
+            if (loadingMore) return;
+            loadingMore = true;
+            const loadMoreBtn = this;
+            loadMoreBtn.classList.add('loading');
+
+            currentPage++;
+            fetch(`/chat/load_more_messages?room_id={{ current_room_id }}&page=${currentPage}`)
+                .then(response => response.json())
+                .then(data => {
+                    loadingMore = false;
+                    loadMoreBtn.classList.remove('loading');
+
+                    if (data.status === 'success') {
+                        const messageList = document.getElementById('message-list');
+                        const messages = data.messages;
+                        if (messages && messages.length > 0) {
+                            messages.forEach(msg => {
+                                var listItem = document.createElement('li');
+                                listItem.classList.add('flex', 'items-start','gap-2')
+                                listItem.dataset.messageId = msg.id
+                                let usernameElement = '';
+                                if(msg.username === "{{session['username']}}" ){
+                                    usernameElement = `<span class="font-semibold text-blue-500">${msg.username} ( ${msg.nickname ? msg.nickname : msg.username} ):</span>`
+                                }else if (msg.is_admin === 1) {
+                                    usernameElement = `<span class="font-semibold text-red-500">${msg.username} ( ${msg.nickname ? msg.nickname : msg.username} ):</span>`
+                                }else{
+                                    usernameElement = `<span class="font-semibold">${msg.username} ( ${msg.nickname ? msg.nickname : msg.username} ):</span>`
+                                }
+
+                                listItem.innerHTML = ` <div class="flex flex-col">
+                                                    <small class="text-xs text-gray-500 timeago" data-timestamp="${ msg.timestamp }" title="${ msg.timestamp }">${ msg.timestamp }</small>
+                                                    <div class="flex items-center gap-2">
+                                                      ${usernameElement}
+                                                      <span class="bg-gray-100 px-2 py-1 rounded-md break-all">${msg.message}</span>
+                                                    </div>
+                                                </div>`
+                                if ({{ is_admin }}){
+                                    listItem.innerHTML += `<form method="post" class="delete-form" action="{{ url_for('chat.chat_delete_message', room_id=current_room_id, page=currentPage) }}" >
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                                                <input type="hidden" name="message_id" value="${msg.id}">
+                                                                 <button type="submit" class="btn btn-sm btn-error">删除</button>
+                                                        </form>`
+                                }
+                                messageList.prepend(listItem);
+                            });
+                             setupDeleteForm();
+                             setTimeout(renderTimeago, 0);
+                        } else {
+                            loadMoreBtn.textContent = '没有更多消息了';
+                            loadMoreBtn.setAttribute('disabled', 'disabled');
+                        }
+                    } else if (data.status === 'no_more') {
+                        loadMoreBtn.textContent = '没有更多消息了';
+                        loadMoreBtn.setAttribute('disabled', 'disabled');
+                    } else {
+                        console.error('加载更多消息失败:', data.message);
+                        alert('加载更多消息失败');
+                    }
+                })
+                .catch(error => {
+                    loadingMore = false;
+                    loadMoreBtn.classList.remove('loading');
+                    console.error('加载更多消息错误:', error);
+                    alert('加载更多消息错误');
+                });
+        });
+    </script>
+</body>
+</html>
