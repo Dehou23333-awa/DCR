@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCR - 消息</title>
-    <link href="{{ url_for('static', filename='css/daisyui.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ url_for('static', filename='css/daisyui.min.css') }}" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/tailwindcss.js') }}"></script>
 </head>
 <body>
-    <div class="hero min-h-screen bg-base-200">
-        <div class="hero-content text-center">
-            <div class="max-w-md">
-               <h1 class="text-5xl font-bold mb-4">{{ title }}</h1>
-                 <p class="py-6">{{ message }}</p>
-                <a href="{{ url_for('chat.index') }}" class="btn btn-primary">返回</a>
-            </div>
-         </div>
+<div class="hero min-h-screen bg-base-200">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <h1 class="text-5xl font-bold mb-4">{{ title }}</h1>
+            <p class="py-6">{{ message }}</p>
+            <a href="{{ url_for('chat.index') }}" class="btn btn-primary">返回</a>
+        </div>
     </div>
+</div>
 </body>
 </html>

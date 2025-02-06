@@ -4,69 +4,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link href="{{ url_for('static', filename='css/daisyui.min.css') }}" rel="stylesheet" type="text/css" />
+    <title>DCR - 登录</title>
+    <link href="{{ url_for('static', filename='css/daisyui.min.css') }}" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/tailwindcss.js') }}"></script>
 </head>
 <body>
-    <div class="hero min-h-screen bg-base-200">
-        <div class="hero-content flex-col lg:flex-row-reverse">
-            <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
-                 <div class="card-body">
-                    <h1 class="text-3xl font-bold mb-4 text-center">登录</h1>
-                    {% if error %}
-                      <div class="alert alert-error mb-4">
+<div class="hero min-h-screen bg-base-200">
+    <div class="hero-content flex-col lg:flex-row-reverse">
+        <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+            <div class="card-body">
+                <h1 class="text-3xl font-bold mb-4 text-center">登录</h1>
+                {% if error %}
+                    <div class="alert alert-error mb-4">
                         <span>{{ error }}</span>
-                      </div>
-                    {% endif %}
-                    <form method="post" onsubmit="rememberUsername()"> <!--  添加 onsubmit 事件处理函数 -->
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">用户名</span></label>
-                            <input type="text" id="username" name="username" placeholder="用户名" required class="input input-bordered" /> <!--  添加 id="username" -->
-                        </div>
-                        <div class="form-control">
-                            <label class="label"><span class="label-text">密码</span></label>
-                            <input type="password" name="password" placeholder="密码" required class="input input-bordered" />
-                        </div>
-                        <div class="form-control mt-4">
-                            <label class="cursor-pointer label">
-                                <span class="label-text">记住用户名</span>
-                                <input type="checkbox" id="remember_username" name="remember_username" class="checkbox" /> <!--  添加 id="remember_username" -->
-                            </label>
-                        </div>
-                        <div class="form-control mt-6">
-                            <button type="submit" class="btn btn-primary">登录</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                {% endif %}
+                <form method="post" onsubmit="rememberUsername()">
+                    <!--  添加 onsubmit 事件处理函数 -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">用户名</span></label>
+                        <input type="text" id="username" name="username" placeholder="用户名" required
+                               class="input input-bordered"/>
+                        <!--  添加 id="username" -->
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">密码</span></label>
+                        <input type="password" name="password" placeholder="密码" required class="input input-bordered"/>
+                    </div>
+                    <div class="form-control mt-4">
+                        <label class="cursor-pointer label">
+                            <span class="label-text">记住用户名</span>
+                            <input type="checkbox" id="remember_username" name="remember_username" class="checkbox"/>
+                            <!--  添加 id="remember_username" -->
+                        </label>
+                    </div>
+                    <div class="form-control mt-6">
+                        <button type="submit" class="btn btn-primary">登录</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() { //  DOMContentLoaded 事件监听
-        const usernameInput = document.getElementById('username');
-        const rememberCheckbox = document.getElementById('remember_username');
-        const rememberedUsername = localStorage.getItem('rememberedUsername'); // 从 localStorage 读取记住的用户名
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () { //  DOMContentLoaded 事件监听
+    const usernameInput = document.getElementById('username');
+    const rememberCheckbox = document.getElementById('remember_username');
+    const rememberedUsername = localStorage.getItem('rememberedUsername'); // 从 localStorage 读取记住的用户名
 
-        if (rememberedUsername) { // 如果 localStorage 中存在记住的用户名
-          usernameInput.value = rememberedUsername; // 预填充用户名输入框
-          rememberCheckbox.checked = true; //  默认勾选 "记住用户名" 复选框 (可选)
-        }
-      });
+    if (rememberedUsername) { // 如果 localStorage 中存在记住的用户名
+      usernameInput.value = rememberedUsername; // 预填充用户名输入框
+      rememberCheckbox.checked = true; //  默认勾选 "记住用户名" 复选框 (可选)
+    }
+  });
 
-      function rememberUsername() { //  rememberUsername 函数
-        const usernameInput = document.getElementById('username');
-        const rememberCheckbox = document.getElementById('remember_username');
-        const username = usernameInput.value;
-        const remember = rememberCheckbox.checked;
+  function rememberUsername() { //  rememberUsername 函数
+    const usernameInput = document.getElementById('username');
+    const rememberCheckbox = document.getElementById('remember_username');
+    const username = usernameInput.value;
+    const remember = rememberCheckbox.checked;
 
-        if (remember) { // 如果 "记住用户名" 复选框被勾选
-          localStorage.setItem('rememberedUsername', username); // 将用户名保存到 localStorage
-        } else { // 如果 "记住用户名" 复选框没有被勾选
-          localStorage.removeItem('rememberedUsername'); //  从 localStorage 中移除用户名
-        }
-      }
-    </script>
+    if (remember) { // 如果 "记住用户名" 复选框被勾选
+      localStorage.setItem('rememberedUsername', username); // 将用户名保存到 localStorage
+    } else { // 如果 "记住用户名" 复选框没有被勾选
+      localStorage.removeItem('rememberedUsername'); //  从 localStorage 中移除用户名
+    }
+  }
+</script>
 </body>
 </html>

@@ -4,185 +4,189 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCR - 管理员面板</title>
-    <link href="{{ url_for('static', filename='css/daisyui.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ url_for('static', filename='css/daisyui.min.css') }}" rel="stylesheet" type="text/css"/>
     <script src="{{ url_for('static', filename='js/tailwindcss.js') }}"></script>
 </head>
 <body>
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold mb-4">DCR - 管理员面板</h1>
-        <a href="{{ url_for('chat.index') }}" class="btn btn-primary mb-4">返回聊天室</a>
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-4">DCR - 管理员面板</h1>
+    <a href="{{ url_for('chat.index') }}" class="btn btn-primary mb-4">返回聊天室</a>
 
-        <h2 class="text-2xl font-semibold mb-2">用户管理</h2>
-        <div class="overflow-x-auto mb-4">
-            <table class="table table-zebra w-full">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>用户名</th>
-                        <th>是否是管理员</th>
-                        <th>是否被封禁</th>
-                        <th>设置管理员</th>
-                        <th>删除用户</th>
-                        <th>封禁/解封用户</th>
-                        <th>强制登出</th>
-                        <th>登陆到用户</th> 
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{user.id}}</td>
-                        <td>{{user.username}}</td>
-                        <td>
+    <h2 class="text-2xl font-semibold mb-2">用户管理</h2>
+    <div class="overflow-x-auto mb-4">
+        <table class="table table-zebra w-full">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>是否是管理员</th>
+                <th>是否被封禁</th>
+                <th>设置管理员</th>
+                <th>删除用户</th>
+                <th>封禁/解封用户</th>
+                <th>强制登出</th>
+                <th>登陆到用户</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                            <span class="badge badge-success">是</span>
+                        {% else %}
+                            <span class="badge badge-error">否</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_banned %}
+                            <span class="badge badge-error">已封禁</span>
+                        {% else %}
+                            <span class="badge badge-success">正常</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" action="{{ url_for('admin.admin_set_admin') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="username" value="{{ user.username }}">
+                            <input type="hidden" name="is_admin" value="{{ 1 if not user.is_admin else 0 }}">
                             {% if user.is_admin %}
-                                <span class="badge badge-success">是</span>
+                                <button type="submit" class="btn btn-sm btn-warning">取消管理员</button>
                             {% else %}
-                                <span class="badge badge-error">否</span>
+                                <button type="submit" class="btn btn-sm btn-success">设为管理员</button>
                             {% endif %}
-                        </td>
-                       <td>
-                            {% if user.is_banned %}
-                                <span class="badge badge-error">已封禁</span>
-                            {% else %}
-                                 <span class="badge badge-success">正常</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                             <form method="post" action="{{ url_for('admin.admin_set_admin') }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                <input type="hidden" name="username" value="{{ user.username }}">
-                                <input type="hidden" name="is_admin" value="{{ 1 if not user.is_admin else 0 }}">
-                                {% if user.is_admin %}
-                                    <button type="submit" class="btn btn-sm btn-warning">取消管理员</button>
-                                {% else %}
-                                    <button type="submit" class="btn btn-sm btn-success">设为管理员</button>
-                                {% endif %}
-                            </form>
-                        </td>
-                        <td>
-                            {% if user.username != 'admin' %}
-                            <form method="post" action="{{ url_for('admin.admin_delete_user') }}" >
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        </form>
+                    </td>
+                    <td>
+                        {% if user.username != 'admin' %}
+                            <form method="post" action="{{ url_for('admin.admin_delete_user') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <input type="hidden" name="username" value="{{ user.username }}">
                                 <button type="submit" class="btn btn-sm btn-error">删除</button>
                             </form>
-                            {% endif %}
-                        </td>
-                         <td>
-                              {% if user.username != 'admin' %}
-                                <form method="post" action="{% if user.is_banned %}{{ url_for('admin.admin_unban_user') }}{% else %}{{ url_for('admin.admin_ban_user') }}{% endif %}">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <input type="hidden" name="username" value="{{ user.username }}">
-                                    {% if user.is_banned %}
-                                      <button type="submit" class="btn btn-sm btn-success">解封</button>
-                                    {% else %}
-                                      <button type="submit" class="btn btn-sm btn-warning">封禁</button>
-                                    {% endif %}
-                                </form>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if user.username != 'admin' %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.username != 'admin' %}
+                            <form method="post"
+                                  action="{% if user.is_banned %}{{ url_for('admin.admin_unban_user') }}{% else %}{{ url_for('admin.admin_ban_user') }}{% endif %}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="username" value="{{ user.username }}">
+                                {% if user.is_banned %}
+                                    <button type="submit" class="btn btn-sm btn-success">解封</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-sm btn-warning">封禁</button>
+                                {% endif %}
+                            </form>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.username != 'admin' %}
                             <form method="post" action="{{ url_for('admin.admin_force_logout_user') }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <input type="hidden" name="username" value="{{ user.username }}">
                                 <button type="submit" class="btn btn-sm btn-warning">强制登出</button>
                             </form>
-                            {% endif %}
-                        </td>
-                        <td> <!-- 新增 "登陆到用户" 列的表单 -->
-                            {% if user.username != 'admin' %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- 新增 "登陆到用户" 列的表单 -->
+                        {% if user.username != 'admin' %}
                             <form method="post" action="{{ url_for('admin.admin_impersonate_user') }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <input type="hidden" name="username" value="{{ user.username }}">
                                 <button type="submit" class="btn btn-sm btn-success">登陆到用户</button>
                             </form>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <h2 class="text-2xl font-semibold mb-2">注册用户</h2>
-        <form method="post" action="{{ url_for('auth.register') }}" class="flex items-center gap-2 mb-4">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="text" name="username" placeholder="用户名" required class="input input-bordered w-32 md:w-48">
-            <input type="password" name="password" placeholder="密码" required class="input input-bordered w-32 md:w-48">
-            <button type="submit" class="btn btn-primary">注册</button>
-        </form>
-
-        <h2 class="text-2xl font-semibold mb-2">聊天室管理</h2>
-         <div class="overflow-x-auto mb-4">
-            <table class="table table-zebra w-full">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>聊天室名称</th>
-                        <th>成员</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for room in rooms %}
-                    <tr>
-                        <td>{{ room.id }}</td>
-                        <td>{{ room.name }}</td>
-                        <td>
-                            {% if room.id in room_members %}
-                                {% for member in room_members[room.id] %}
-                                    <span class="badge badge-secondary mr-1">{{ member }}</span>
-                                {% endfor %}
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="flex flex-col md:flex-row gap-2">
-                                <form method="post" action="{{ url_for('admin.admin_delete_room') }}">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <input type="hidden" name="room_id" value="{{ room.id }}">
-                                    <button type="submit" class="btn btn-sm btn-error">删除</button>
-                                </form>
-                                <form method="post" action="{{ url_for('admin.admin_add_user_to_room') }}" class="flex items-center gap-2">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <input type="hidden" name="room_id" value="{{ room.id }}">
-                                    <select name="username" class="select select-bordered select-sm w-24 md:w-32">
-                                        {% set available_users = get_available_users_for_room(room.id) %}
-                                        {% for user in users %}
-                                            {% if user.username in available_users %}
-                                                <option value="{{ user.username }}">{{ user.username }}</option>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-success">添加用户</button>
-                                </form>
-                                <form method="post" action="{{ url_for('admin.admin_remove_user_from_room') }}" class="flex items-center gap-2">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                    <input type="hidden" name="room_id" value="{{ room.id }}">
-                                    <select name="username" class="select select-bordered select-sm w-24 md:w-32">
-                                        {% set room_users = room_members.get(room.id, []) %}
-                                        {% for user in users %}
-                                            {% if user.username in room_users %}
-                                                <option value="{{ user.username }}">{{ user.username }}</option>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-warning">删除用户</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <h2 class="text-2xl font-semibold mb-2">创建聊天室</h2>
-        <form method="post" action="{{ url_for('admin.admin_create_room') }}" class="flex items-center gap-2 mb-4">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="text" name="room_name" placeholder="聊天室名称" required class="input input-bordered w-32 md:w-48">
-            <button type="submit" class="btn btn-primary">创建</button>
-        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
+
+    <h2 class="text-2xl font-semibold mb-2">注册用户</h2>
+    <form method="post" action="{{ url_for('auth.register') }}" class="flex items-center gap-2 mb-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="text" name="username" placeholder="用户名" required class="input input-bordered w-32 md:w-48">
+        <input type="password" name="password" placeholder="密码" required class="input input-bordered w-32 md:w-48">
+        <button type="submit" class="btn btn-primary">注册</button>
+    </form>
+
+    <h2 class="text-2xl font-semibold mb-2">聊天室管理</h2>
+    <div class="overflow-x-auto mb-4">
+        <table class="table table-zebra w-full">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>聊天室名称</th>
+                <th>成员</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for room in rooms %}
+                <tr>
+                    <td>{{ room.id }}</td>
+                    <td>{{ room.name }}</td>
+                    <td>
+                        {% if room.id in room_members %}
+                            {% for member in room_members[room.id] %}
+                                <span class="badge badge-secondary mr-1">{{ member }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="flex flex-col md:flex-row gap-2">
+                            <form method="post" action="{{ url_for('admin.admin_delete_room') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="room_id" value="{{ room.id }}">
+                                <button type="submit" class="btn btn-sm btn-error">删除</button>
+                            </form>
+                            <form method="post" action="{{ url_for('admin.admin_add_user_to_room') }}"
+                                  class="flex items-center gap-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="room_id" value="{{ room.id }}">
+                                <select name="username" class="select select-bordered select-sm w-24 md:w-32">
+                                    {% set available_users = get_available_users_for_room(room.id) %}
+                                    {% for user in users %}
+                                        {% if user.username in available_users %}
+                                            <option value="{{ user.username }}">{{ user.username }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-success">添加用户</button>
+                            </form>
+                            <form method="post" action="{{ url_for('admin.admin_remove_user_from_room') }}"
+                                  class="flex items-center gap-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="room_id" value="{{ room.id }}">
+                                <select name="username" class="select select-bordered select-sm w-24 md:w-32">
+                                    {% set room_users = room_members.get(room.id, []) %}
+                                    {% for user in users %}
+                                        {% if user.username in room_users %}
+                                            <option value="{{ user.username }}">{{ user.username }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-warning">删除用户</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="text-2xl font-semibold mb-2">创建聊天室</h2>
+    <form method="post" action="{{ url_for('admin.admin_create_room') }}" class="flex items-center gap-2 mb-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="text" name="room_name" placeholder="聊天室名称" required class="input input-bordered w-32 md:w-48">
+        <button type="submit" class="btn btn-primary">创建</button>
+    </form>
+</div>
 </body>
 </html>
