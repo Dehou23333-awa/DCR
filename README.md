@@ -34,65 +34,7 @@ Dehou Chat Room (DCR) 是一个简洁、实时的在线聊天室应用程序，�
 
 ## 快速开始
 
-### 1. 克隆代码
-
-```bash
-git clone https://github.com/Dehou23333-awa/DCR.git
-cd DCR
-```
-
-### 2. 创建并激活虚拟环境
-
-```bash
-python3 -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate  # Windows
-```
-
-### 3. 安装依赖
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. 配置环境变量
-
-创建 .env 文件，并添加以下环境变量 (示例):
-
-```bash
-DATABASE_URL=./chat.db
-SECRET_KEY=YOUR_SECRET_KEY  # 请务必修改成你自己的安全密钥
-```
-
-### 5. 初始化数据库
-
-```python
-# 应用会自动初始化数据库，无需手动执行。
-# 但如果需要手动初始化，可以运行以下代码：
-# python
-# from chat_app import create_app
-# app, _ = create_app()
-# with app.app_context():
-#     from chat_app.db import database
-#     database.init_db()
-```
-
-### 6. 运行应用程序
-
-```bash
-python main.py
-```
-
-### 7. 打开浏览器，访问 `http://127.0.0.1:5000/`。
-
-## 管理员登录
-
-* 默认管理员用户名: admin
-* 默认管理员密码: CHANGEME （请务必在首次登录后立即修改密码！）
-
-## 注意事项
-
-* 安全性: 请务必修改 .env 文件中的 SECRET_KEY，以确保应用程序的安全性。
+请参阅[快速开始]([https://github.com/Dehou23333-awa/DCR/wiki/](https://github.com/Dehou23333-awa/DCR/wiki/Get%E2%80%90Started))
 
 ## 贡献
 
