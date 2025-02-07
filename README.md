@@ -1,5 +1,9 @@
 # Dehou Chat Room (DCR)
 
+[![Issues](https://img.shields.io/github/issues/Dehou23333-awa/DCR?style=flat&label=Issues&labelColor=444444&color=1F883D)](https://github.com/Dehou23333-awa/DCR/issues)
+[![Stars](https://img.shields.io/github/stars/Dehou23333-awa/DCR?style=flat&label=Stars&labelColor=444444&color=1F883D)](https://github.com/Dehou23333-awa/DCR/)
+[![Commits](https://img.shields.io/github/last-commit/Dehou23333-awa/DCR?style=flat&label=Last-Commit&labelColor=444444&color=1F883D)](https://github.com/Dehou23333-awa/DCR/commits)
+
 ## 简介
 
 Dehou Chat Room (DCR) 是一个简洁、实时的在线聊天室应用程序，基于 Flask 和 Socket.IO 构建。它旨在提供流畅的用户体验，支持多聊天室、用户管理和管理员权限等功能。
