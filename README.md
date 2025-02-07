@@ -34,7 +34,7 @@ Dehou Chat Room (DCR) 是一个简洁、实时的在线聊天室应用程序，�
 
 ## 快速开始
 
-请参阅[快速开始]([https://github.com/Dehou23333-awa/DCR/wiki/](https://github.com/Dehou23333-awa/DCR/wiki/Get%E2%80%90Started))
+请参阅 [快速开始](https://github.com/Dehou23333-awa/DCR/wiki/Get%E2%80%90Started)
 
 ## 贡献
 
