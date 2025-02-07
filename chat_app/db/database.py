@@ -751,8 +751,7 @@ def create_default_admin_user_if_not_exists():
 
             if register_user(default_admin_username, password_hash, is_admin=1):
                 current_app.logger.info(f"Default admin user created - username: {default_admin_username}")
-                print(
-                    f"Default admin user '{default_admin_username}' created with password '{default_admin_password}'. 请立即修改密码！")
+                current_app.logger.info(f"Default admin user '{default_admin_username}' created. 请立即修改密码！")
                 return # 创建成功, 返回
             else:
                 current_app.logger.warning(f"Failed to create default admin user (username might exist)") # 记录创建失败信息
